@@ -1,0 +1,409 @@
+[
+    {
+        "id": "2d826a6a.995236",
+        "type": "tab",
+        "label": "Alarm",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "1e26a59a.5a945a",
+        "type": "mqtt in",
+        "z": "2d826a6a.995236",
+        "name": "kepserver - \"alarm\"",
+        "topic": "alarm",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "df061a1c.bc3198",
+        "x": 110,
+        "y": 40,
+        "wires": [
+            [
+                "c004a988.7fd1e8",
+                "b8f33fc9.f8efa"
+            ]
+        ]
+    },
+    {
+        "id": "c004a988.7fd1e8",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 310,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "5abd91b0.9e8cd",
+        "type": "jquerify",
+        "z": "2d826a6a.995236",
+        "name": "Parsing param",
+        "func": "var feed = []\n$(msg.payload.values).each(function( i, val ) {\n    if(val.id.split(\".\")[2] == \"alarm\"){\n        if(val.v == 1){\n            date = new Date(val.t)\n            timestamp = date.getFullYear() + '-' +\n                ('00' + (date.getMonth()+1)).slice(-2) + '-' +\n                ('00' + date.getDate()).slice(-2) + ' ' + \n                ('00' + date.getHours()).slice(-2) + ':' + \n                ('00' + date.getMinutes()).slice(-2) + ':' + \n                ('00' + date.getSeconds()).slice(-2);\n            feed.push({code:val.id.split(\".\")[3],t:timestamp,T:val.t})\n        }\n    }\n});\nmsg.payload = feed\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "19e6f167.21204f",
+                "426c7b2.5b11384"
+            ]
+        ]
+    },
+    {
+        "id": "19e6f167.21204f",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 310,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "b8f33fc9.f8efa",
+        "type": "bigsplitter",
+        "z": "2d826a6a.995236",
+        "name": "",
+        "property": "payload.values",
+        "x": 320,
+        "y": 80,
+        "wires": [
+            [
+                "7ab7be27.3c835",
+                "720df086.c50d1"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "7ab7be27.3c835",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 511,
+        "y": 36,
+        "wires": []
+    },
+    {
+        "id": "720df086.c50d1",
+        "type": "jquerify",
+        "z": "2d826a6a.995236",
+        "name": "Parsing param",
+        "func": "date = new Date(msg.payload.t)\ntimestamp = date.getFullYear() + '-' +\n    ('00' + (date.getMonth()+1)).slice(-2) + '-' +\n    ('00' + date.getDate()).slice(-2) + ' ' + \n    ('00' + date.getHours()).slice(-2) + ':' + \n    ('00' + date.getMinutes()).slice(-2) + ':' + \n    ('00' + date.getSeconds()).slice(-2);\nmsg.alarm = {}\nif(msg.payload.id.split(\".\")[2] == \"alarm\"){\n    msg.alarm.code = msg.payload.id.split(\".\")[3]\n    msg.alarm.val = msg.payload.v\n    msg.alarm.timestamp = timestamp\n    msg.alarm.raw_timestamp = msg.payload.t\n    msg.topic =\"SELECT * FROM history_alarm\"+\n            \" WHERE `alarm.code` ='\"+msg.alarm.code+\"'\"+\n            \" AND `end_timestamp` is null\"\n} else {\n    msg.topic = \"\"\n}\n\nmsg.timestamp = timestamp\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 520,
+        "y": 73,
+        "wires": [
+            [
+                "23b5113c.c8af7e",
+                "ee43182a.5c6288"
+            ]
+        ]
+    },
+    {
+        "id": "23b5113c.c8af7e",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 710,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "eb766de5.3059a",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 710,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ee43182a.5c6288",
+        "type": "mysql",
+        "z": "2d826a6a.995236",
+        "mydb": "82d84e5d.ced14",
+        "name": "get history alarm",
+        "x": 520,
+        "y": 120,
+        "wires": [
+            [
+                "eb766de5.3059a",
+                "cfd55ead.a2547"
+            ]
+        ]
+    },
+    {
+        "id": "cfd55ead.a2547",
+        "type": "switch",
+        "z": "2d826a6a.995236",
+        "name": "alarm condition",
+        "property": "alarm.val",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 520,
+        "y": 160,
+        "wires": [
+            [
+                "a7fef750.bcbc08"
+            ],
+            [
+                "169dc0de.ea938f"
+            ]
+        ]
+    },
+    {
+        "id": "a7fef750.bcbc08",
+        "type": "jquerify",
+        "z": "2d826a6a.995236",
+        "name": "Parsing param",
+        "func": "if(msg.payload.length > 0){\n    id = []\n    $(msg.payload).each(function( i, val ) {\n        id.push(val.id)\n    });\n    msg.topic = \"UPDATE history_alarm \"+\n                \"SET `end_timestamp`='\"+msg.alarm.timestamp+\"' \"+\n                \"WHERE `id`='\"+id.join(',')+\"'\"\n} else if(msg.payload.length > 1){\n    id = []\n    $(msg.payload).each(function( i, val ) {\n        id.push(val.id)\n    });\n    msg.topic = \"UPDATE history_alarm \"+\n                \"SET `end_timestamp` \"+\n                \"VALUES (\"+msg.alarm.timestamp+\") \"+\n                \"WHERE `id` IN (\"+id.join(',')+\")\"\n} else {\n    msg.topic = \"\"\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 740,
+        "y": 120,
+        "wires": [
+            [
+                "1fa78347.52ee4d"
+            ]
+        ]
+    },
+    {
+        "id": "a8e72253.5f268",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 930,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "169dc0de.ea938f",
+        "type": "jquerify",
+        "z": "2d826a6a.995236",
+        "name": "Parsing param",
+        "func": "if(msg.payload.length == 0){\n    msg.topic = \"INSERT INTO history_alarm \"+\n                \"(`alarm.code`, `timestamp`) \"+\n                \"VALUES ('\"+msg.alarm.code+\"','\"+msg.alarm.timestamp+\"')\"\n} else {\n    msg.topic = \"\"\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 740,
+        "y": 200,
+        "wires": [
+            [
+                "1fa78347.52ee4d"
+            ]
+        ]
+    },
+    {
+        "id": "ca4ff403.34c488",
+        "type": "mysql",
+        "z": "2d826a6a.995236",
+        "mydb": "82d84e5d.ced14",
+        "name": "get history alarm",
+        "x": 960,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1fa78347.52ee4d",
+        "type": "switch",
+        "z": "2d826a6a.995236",
+        "name": "alarm condition",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 740,
+        "y": 160,
+        "wires": [
+            [
+                "ca4ff403.34c488",
+                "a8e72253.5f268"
+            ]
+        ]
+    },
+    {
+        "id": "426c7b2.5b11384",
+        "type": "websocket out",
+        "z": "2d826a6a.995236",
+        "name": "alarm_5aa1",
+        "server": "56679c05.49c634",
+        "client": "",
+        "x": 130,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "deeba8f1.2ecc68",
+        "type": "inject",
+        "z": "2d826a6a.995236",
+        "name": "ws_from_db",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "0.1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "3d198cf1.8db744"
+            ]
+        ]
+    },
+    {
+        "id": "3d198cf1.8db744",
+        "type": "jquerify",
+        "z": "2d826a6a.995236",
+        "name": "Parsing param",
+        "func": "msg.topic = \"SELECT `h`.`id`, timestamp, `h`.`alarm.code` as code, note, action, \"+\n            \"`line.id` as line, `machine.id` as machine, `part.id` as part \"+\n            \"FROM history_alarm as h \"+\n            \"LEFT JOIN alarm as a ON `a`.`code` = `h`.`alarm.code` \"+\n            \"WHERE end_timestamp is null \"+\n            \"ORDER BY timestamp ASC\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 120,
+        "y": 240,
+        "wires": [
+            [
+                "3d21b255.2ac1ce"
+            ]
+        ]
+    },
+    {
+        "id": "3d21b255.2ac1ce",
+        "type": "mysql",
+        "z": "2d826a6a.995236",
+        "mydb": "82d84e5d.ced14",
+        "name": "get history alarm",
+        "x": 120,
+        "y": 280,
+        "wires": [
+            [
+                "824ccaa2.48db88",
+                "e6533f6d.53fc1"
+            ]
+        ]
+    },
+    {
+        "id": "824ccaa2.48db88",
+        "type": "debug",
+        "z": "2d826a6a.995236",
+        "name": "Debug",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 310,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "e6533f6d.53fc1",
+        "type": "websocket out",
+        "z": "2d826a6a.995236",
+        "name": "alarm_5aa1",
+        "server": "56679c05.49c634",
+        "client": "",
+        "x": 130,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "df061a1c.bc3198",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "Mosquitto",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "82d84e5d.ced14",
+        "type": "MySQLdatabase",
+        "z": "",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "symptom",
+        "tz": ""
+    },
+    {
+        "id": "56679c05.49c634",
+        "type": "websocket-listener",
+        "z": "",
+        "path": "/ws/alarm_5aa1",
+        "wholemsg": "false"
+    }
+]
